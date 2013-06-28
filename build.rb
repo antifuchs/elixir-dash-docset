@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# Huge FIXME: This is terrible code, but it seems to work for Elixir 0.9.3.
+
 require 'rubygems'
 require 'bundler/setup'
 require 'fileutils'
@@ -64,7 +66,17 @@ def frob_documentation(document, title, relative_count)
   document.css('.pagination').remove
   document.css('link[rel="stylesheet"]').each {|el| el['href']='../'*(relative_count) + './' + el['href'] if el['href'].start_with?('/')}
   document.css('title').each {|el| el.content = title }
-#  binding.pry
+
+  # Rewrite links to be more relative:
+  document.xpath('//a[@href]').each do |link|
+    link['href'] = case link['href']
+    when %r{^/}
+      ('../' * relative_count) + './' + link['href']
+    else
+      link['href']
+    end
+  end
+
   document.to_s
 end
 
